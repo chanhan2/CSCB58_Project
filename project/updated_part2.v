@@ -1,0 +1,136 @@
+// Part 2 skeleton
+
+module updated_part2
+	(
+		CLOCK_50,						//	On Board 50 MHz
+		// Your inputs and outputs here
+        KEY,
+        SW,
+		// The ports below are for the VGA output.  Do not change.
+		VGA_CLK,   						//	VGA Clock
+		VGA_HS,							//	VGA H_SYNC
+		VGA_VS,							//	VGA V_SYNC
+		VGA_BLANK_N,						//	VGA BLANK
+		VGA_SYNC_N,						//	VGA SYNC
+		VGA_R,   						//	VGA Red[9:0]
+		VGA_G,	 						//	VGA Green[9:0]
+		VGA_B   						//	VGA Blue[9:0]
+	);
+
+	input			CLOCK_50;				//	50 MHz
+	input   [16:0]   SW;
+	input   [3:0]   KEY;
+
+	// Declare your inputs and outputs here
+	// Do not change the following outputs
+	output			VGA_CLK;   				//	VGA Clock
+	output			VGA_HS;					//	VGA H_SYNC
+	output			VGA_VS;					//	VGA V_SYNC
+	output			VGA_BLANK_N;				//	VGA BLANK
+	output			VGA_SYNC_N;				//	VGA SYNC
+	output	[9:0]	VGA_R;   				//	VGA Red[9:0]
+	output	[9:0]	VGA_G;	 				//	VGA Green[9:0]
+	output	[9:0]	VGA_B;   				//	VGA Blue[9:0]
+	
+	wire resetn;
+	assign resetn = SW[9];
+	
+	// Create the colour, x, y and writeEn wires that are inputs to the controller.
+	wire [2:0] colour = SW[16:13];
+	reg [9:0] x;
+	reg [6:0] y;
+	reg [17:0]a = 16'b0000000000000001;
+	reg [17:0]b = 16'b0000000000000001;	
+	reg [17:0]xL = 16'b0000000000000001;
+	reg [1:0]xL2 = 1'b0;
+	reg [1:0]yL2 = 1'b0;
+	reg [1:0] no = 1'b0;
+	reg [10:0]yL = 10'b0000000111;
+	reg player = 1'b0;
+	reg set = 1'b0;
+	reg [28:0]count = 28'b0000000000000000000000000000; 
+	wire writeEn;
+   assign writeEn = 1'b1;
+	
+	always @ (posedge CLOCK_50) begin
+		if ((yL2 == 1'b0) && (no == 1'b0) && KEY[3] == 1'b1 && KEY[2] == 1'b1 && KEY[1] == 1'b1 && KEY[0] == 1'b1 && player == 1'b0 && set == 1'b0) begin
+			if (xL <= 16'b0000000011111111 && KEY[3] == 1'b1 && KEY[2] == 1'b1 && KEY[1] == 1'b1 && KEY[0] == 1'b1 && yL2 == 1'b0) begin
+				xL <= xL + 8'b00000001;
+			end
+			if (xL >= 16'b0000000011111111 && KEY[3] == 1'b1 && KEY[2] == 1'b1 && KEY[1] == 1'b1 && KEY[0] == 1'b1 && yL2 == 1'b0) begin
+				xL <= 0;
+				yL <= 10'b0110111111;
+			end
+			if (xL == 16'b0000000011111111 && yL == 10'b0110111111 && KEY[3] == 1'b1 && KEY[2] == 1'b1 && KEY[1] == 1'b1 && KEY[0] == 1'b1 && yL2 == 1'b0) begin
+				yL2 <= 1'b1;
+			end
+		end
+		if ((set == 1'b1) && (player == 1'b0)) begin 
+			player <= 1'b1;
+			set <= 1'b1;
+			xL <= 16'b0000000000001001;
+			yL <= 16'b0000000000100001;
+		end
+		if (KEY[3] == 1'b0 && yL2 == 1'b1) begin
+			count <= count + 28'b0000000000000000000000000001;
+			if (count == 28'b011011111010111100001000000) begin
+				xL <= xL - 16'b0000000000000001;
+				count <= 28'b0000000000000000000000000000; 
+			end
+			set <= 1'b1;
+		end
+		if (KEY[2] == 1'b0 && yL2 == 1'b1) begin
+			count <= count + 28'b0000000000000000000000000001;
+			if (count == 28'b011011111010111100001000000) begin
+				yL <= yL + 16'b0000000000000001;
+				count <= 28'b0000000000000000000000000000; 
+			end
+			set <= 1'b1;
+		end
+		if (KEY[1] == 1'b0 && yL2 == 1'b1) begin
+			count <= count + 28'b0000000000000000000000000001;
+			if (count == 28'b011011111010111100001000000) begin		
+				yL <= yL - 16'b0000000000000001;
+				count <= 28'b0000000000000000000000000000; 
+			end
+			set <= 1'b1;
+		end
+		if (KEY[0] == 1'b0 && yL2 == 1'b1) begin
+			count <= count + 28'b0000000000000000000000000001;
+			if (count == 28'b011011111010111100001000000) begin			
+				xL <= xL + 16'b0000000000000001;
+				count <= 28'b0000000000000000000000000000; 
+			end
+			set <= 1'b1;
+		end		
+	end
+	
+
+	// Create an Instance of a VGA controller - there can be only one!
+	// Define the number of colours as well as the initial background
+	// image file (.MIF) for the controller.
+	vga_adapter VGA(
+			.resetn(resetn),
+			.clock(CLOCK_50),
+			.colour(colour),
+			.x(xL),
+			.y(yL),
+			.plot(1'b1),
+			/* Signals for the DAC to drive the monitor. */
+			.VGA_R(VGA_R),
+			.VGA_G(VGA_G),
+			.VGA_B(VGA_B),
+			.VGA_HS(VGA_HS),
+			.VGA_VS(VGA_VS),
+			.VGA_BLANK(VGA_BLANK_N),
+			.VGA_SYNC(VGA_SYNC_N),
+			.VGA_CLK(VGA_CLK));
+		defparam VGA.RESOLUTION = "160x120";
+		defparam VGA.MONOCHROME = "FALSE";
+		defparam VGA.BITS_PER_COLOUR_CHANNEL = 1;
+		defparam VGA.BACKGROUND_IMAGE = "image.colour.mif";
+		
+	// Put your code here. Your code should produce signals x,y,colour and writeEn/plot
+	// for the VGA controller, in addition to any other functionality your design may require.
+    
+endmodule
