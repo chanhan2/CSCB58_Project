@@ -1,6 +1,7 @@
 # CSCB58_Project
 Painting With DE2 Using Verilog
 
+Using the VGA output from the DE2 Cyclone IV E 
 board to paint 2-d pixelated images.
 
 The inputs to draw the bounderies for the paint
@@ -15,4 +16,4 @@ a slight delay due to slowing down the clock cycle from
 CLOCK_50 of 50mhz to 10mhz to allow for user control of the 
 painting cursor.
 
-Created by Hanson and Arvic.
+Created by Hanson Chan student ID 1002436562 and Arvic Landrito student ID 1002641590.
