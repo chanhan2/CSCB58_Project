@@ -7,7 +7,7 @@ board to paint 2-d pixelated images.
 The inputs to draw the bounderies for the paint
 tool are switching on SWITCH 16-13 on before 
 running the program. And the keys to move the cursor 
-are KEYS 3-0. To toggle through the available 8-bit 
+are KEYS 3-0 to paint. To toggle through the available 8-bit 
 colours are SWITCHES 16-13.
 
 NOTE:
